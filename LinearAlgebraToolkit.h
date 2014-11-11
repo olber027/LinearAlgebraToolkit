@@ -925,10 +925,6 @@ class Point {
 };
 /********************MATRIX************************/
 class Matrix {
-
-	private:
-		int rows, cols;
-		double** mat;
 	
 	public:
 	
@@ -938,11 +934,13 @@ class Matrix {
 			zeroMatrix();
 		}
 
+		//fills the matrix of the given dimensions with the given value
 		Matrix(int r, int c, double init) : rows(r), cols(c) {
 			allocateMemory();
 			fillMatrix(init);
 		}
 
+		//copy contstructor
 		Matrix(const Matrix& m) {
 			rows = m.rows;
 			cols = m.cols;
@@ -954,6 +952,7 @@ class Matrix {
 			}
 		}
 
+		//copy constructor
 		Matrix(const Matrix* m) {
 			rows = m->rows;
 			cols = m->cols;
@@ -965,6 +964,7 @@ class Matrix {
 			}
 		}
 
+		//destructor
 		~Matrix() { deallocateMemory(); }
 
 		Matrix& operator=(Matrix m) {
@@ -1041,10 +1041,13 @@ class Matrix {
 		int rowLength() { return cols; }
 		int colLength() { return rows; }
 
+		//sets all values in the matrix to 0
 		void zeroMatrix() {
 			fillMatrix(0);
 		}
 
+		//fills all entries in the matrix with the given value.
+		//overwrites any values that were previously there.
 		void fillMatrix(double fill) {
 			for(int i = 0; i < rows; i++) {
 				for(int j = 0; j < cols; j++) {
@@ -1053,6 +1056,7 @@ class Matrix {
 			}
 		}
 
+		//returns true if the given location is in the bounds of the matrix.
 		bool isInBounds(int r, int c) {
 			if(r >= rows || c >= cols || r < 0 || c < 0) {
 				return false;
@@ -1061,44 +1065,83 @@ class Matrix {
 			}
 		}
 		
-		void setVal(int r, int c, double val) {
+		//sets the value at the given location to the given value
+		bool setVal(int r, int c, double val) {
 			if(isInBounds(r,c)) {
 				mat[r][c] = val;
+				return true;
 			}
+			return false;
 		}
 
-		void setRow(int rowNum, double val) {
+		//sets all entries in the given row to the given value.
+		bool setRow(int rowNum, double val) {
 			if(isInBounds(rowNum, 0)) {
 				for(int i = 0; i < cols; i++) {
 					mat[rowNum][i] = val;
 				}
+				return true;
 			}
+			return false;
 		}
 
-		void setRow(int rowNum, Vector v) {
+		//sets the given row to the new vector. If the vector is smaller
+		//than the number of columns in the matrix, the empty entries will be 
+		//filled in with 0. If it is larger, only the entries that fit will be filled in.
+		bool setRow(int rowNum, Vector v) {
 			if(isInBounds(rowNum, 0)) {
-				for(int i = 0; i < cols; i++) {
-					mat[rowNum][i] = v[i];
+				if(v.rowLength() < cols) {
+					for(int i = 0; i < v.rowLength(); i++) {
+						mat[rowNum][i] = v[i];
+					}
+					for(int i = v.rowLength(); i < cols; i++) {
+						mat[rowNum][i] = 0;
+					}
+				} else {
+					for(int i = 0; i < cols; i++) {
+						mat[rowNum][i] = v[i];
+					}
 				}
+				return true;
 			}
+			return false;
 		}
 
-		void setCol(int colNum, double val) {
+		//sets all entries in the given column to the given value.
+		bool setCol(int colNum, double val) {
 			if(isInBounds(0, colNum)) {
 				for(int i = 0; i < rows; i++) {
 					mat[i][colNum] = val;
 				}
+				return true;
 			}
+			return false;
 		}
 		
-		void setCol(int colNum, Vector v) {
+		//sets the given column to the new vector. If the vector is smaller
+		//than the number of rows in the matrix, the empty entries will be 
+		//filled in with 0. If it is larger, only the entries that fit will be filled in.
+		bool setCol(int colNum, Vector v) {
 			if(isInBounds(0, colNum)) {
-				for(int i = 0; i < rows; i++) {
-					mat[i][colNum] = v[i];
+				if(v.colLength() < rows) {
+					for(int i = 0; i < v.colLength(); i++) {
+						mat[i][colNum] = v[i];
+					}
+					for(int i = v.colLength(); i < rows; i++) {
+						mat[i][colNum] = 0;
+					}
+				} else {
+					for(int i = 0; i < rows; i++) {
+						mat[i][colNum] = v[i];
+					}
 				}
+				return true;
 			}
+			return false;
 		}
 
+		//returns true if the number of rows is equal to the number of columns
+		//false otherwise.
 		bool isSquare() {
 			if(rows == cols) 
 				return true;
@@ -1138,7 +1181,8 @@ class Matrix {
 		bool addRow(int size, double* arr) {
 			return addRow(Vector(size, arr));
 		}
-
+		
+		//adds a row to the matrix keeping all rows of zeroes
         bool addRowKeepingZeroes(Vector v) {
             if(!isZeroMatrix()) {
                 return addRow(v);
@@ -1162,6 +1206,8 @@ class Matrix {
             return addRowKeepingZeroes(Vector(s, arr));
         }
 		
+		//adds a column to the matrix. if the matrix was a zero matrix, it will delete the 
+		//previously existing columns of zeroes and replace them with the new column.
 		bool addCol(Vector v) {
 			if(!isZeroMatrix()) {
 				if(v.getSize() != rows) {
@@ -1192,7 +1238,8 @@ class Matrix {
 		bool addCol(int size, double* arr) {
 			return addCol(Vector(size, arr));
 		}
-
+		
+		//adds a column to the matrix keeping all columns of zeroes
         bool addColKeepingZeroes(Vector v) {
             if(!isZeroMatrix()) {
                 return addCol(v);
@@ -1230,6 +1277,7 @@ class Matrix {
 			return (m.rows == l.rows && m.cols == l.cols)
 		}
 
+		//deletes the specified row. returns false if the matrix does not have that row.
 		bool deleteRow(int rowNum) {
 			if(!isInBounds(rowNum, 0)) {
 				return false;
@@ -1254,6 +1302,7 @@ class Matrix {
 			return true;
 		}
 
+		//deletes the specified column. returns false if the matrix does not have that column.
 		bool deleteCol(int colNum) {
 			if(!isInBounds(0, colNum)) {
 				return false;
@@ -1297,12 +1346,16 @@ class Matrix {
 			Vector v;
 			in >> garbage;
 			while(garbage != ']') {
-				in >> v >> garbage;
+				in >> v;
 				m.addRow(v);
+				garbage = in.Peek();
 			}
 			return in;
 		}
 
+		//NOTE: all operators are pretty self explanatory. I will not be commenting on them
+		//			 except where I deem appropriate.
+		
 		friend Matrix operator+(Matrix m, Matrix l) {
 			if(!m.compareDimensions(l))
 				return Matrix();
@@ -1365,7 +1418,7 @@ class Matrix {
 			return m*(*l);
 		}
 
-        //for a row vector
+        //Treating the vector as a row vector
         friend Vector operator*(Vector v, Matrix m) {
             if(v.getSize() != m.colLength()) {
                 return Vector();
@@ -1386,7 +1439,7 @@ class Matrix {
         }
 
 
-        //for a column vector
+        //Treating the vector as a column Vector
 		friend Vector operator*(Matrix m, Vector v) {
 			if(v.getSize() != m.rowLength()) {
                 return Vector();
@@ -1440,6 +1493,7 @@ class Matrix {
             return result;
 		}
 
+		
 		friend Point operator*(Matrix m, Point* p) {
 			return m*(*p);
 		}
@@ -1458,6 +1512,7 @@ class Matrix {
 			return m*(1.0/s);
 		}
 
+		//returns true if all entries are the same in both matrices
 		bool operator==(Matrix m) {
 			for(int i = 0; i < rows; i++) {
 				for(int j = 0; j < cols; j++) {
@@ -1469,10 +1524,12 @@ class Matrix {
 			return true;
 		}
 
+		//returns true if not all entries are the same in both matrices
 		bool operator!=(Matrix m) {
 			return !(*this == m);
 		}
 
+		//returns the row echelon form of the matrix this is called on.
 		Matrix getRowEchelonForm() {
 			Matrix result;
 			result = *this;
@@ -1505,6 +1562,7 @@ class Matrix {
 			return result;
 		}
 
+		//returns the reduced row echelon form of the matrix this is called on
 		Matrix getReducedRowEchelonForm() {
 			Matrix result = getRowEchelonForm();
 
@@ -1564,16 +1622,19 @@ class Matrix {
 
 		}
 
+		//reduces the matrix this is called on to row echelon form.
 		Matrix reduceToRowEchelonForm() {
 			*this = getRowEchelonForm();
 			return *this;
 		}
 
+		//reduces the matrix this is called on to reduced row echelon form.
 		Matrix reduceToReducedRowEchelonForm() {
 			*this = getReducedRowEchelonForm();
 			return *this;
 		}
 
+		//returns true if the matrix this is called on is in row echelon form.
 		bool isInRowEchelonForm() {
 			if(colLength() <= 1) {
 				return false;
@@ -1618,6 +1679,7 @@ class Matrix {
 			return true;
 		}
 
+		//returns true if the matrix this is called on is in reduced row echelon form....doesn't actually work right now though.
 		bool isInReducedRowEchelonForm() {
 			if(!isInRowEchelonForm()) {
 				return false;
@@ -1648,6 +1710,10 @@ class Matrix {
 			return true;
 		}
 
+		//TRUE       FALSE
+		//[1 2 3]    [0 1 2]
+		//|0 1 2|    |1 2 3|
+		//[0 0 1]    [0 0 1]
 		bool isOrdered() {
 			for(int i = 0; i < colLength(); i++) {
 				Vector temp = getRowAsVector(i);
@@ -1663,6 +1729,7 @@ class Matrix {
 			return true;
 		}
 
+		//returns the inverse of the matrix this is called on, if it exists.
 		Matrix inverse() {
 			if(!isSquare() || determinant() == 0) {
 				return Matrix();
@@ -1695,12 +1762,14 @@ class Matrix {
 			return result;
 		}
 
+		//makes the matrix this is called on equal to the inverse of that matrix and returns the result.
 		Matrix inversify() {
 			*this = inverse();
 			return *this;
 		}
 
-		//run time for this is n!/2...only use if you have to and store the value when you can as to not re-run it.
+		//returns the determinant of the matrix this is called on, if it exists. returns -12345 if it does not. 
+		//NOTE: run time for this is n!/2...only use if you have to and store the value when you can as to not re-run it.
 		//TODO: make this not shitty run time.
 		double determinant() {
 			if(!isSquare()) {
@@ -1718,31 +1787,8 @@ class Matrix {
 			}
 			return sum;
 		}
-		
-		//helper function for determinant calculations
-		private Matrix createSubMatrix(Matrix mat, int pos) {
-			Matrix temp(mat.colLength()-1, mat.rowLength()-1);
-			bool skipped = false;
-			for(int j = 0; j < mat.rowLength(); j++) {
-				Vector v;
-				if(j != pos) {
-					for(int k = 1; k < mat.colLength(); k++) {
-						v.pushBack(mat[k][j]);
-					}
-				} else {
-					skipped = true;
-				}
-				if(v.getSize() != 0) {
-					if(skipped) {
-						temp.setCol(j-1, v);
-					} else {
-						temp.setCol(j, v);
-					}
-				}
-			}
-			return temp;
-		}
 
+		//returns a vector consisting of all the values in the given row.
 		Vector getRowAsVector(int rowNum) {
 			if(!isInBounds(rowNum, 0)) {
 				return Vector();
@@ -1754,10 +1800,12 @@ class Matrix {
 			return result;
 		}
 
+		//returns an array consisting of all the values in the given row
 		double* getRowAsArray(int rowNum) {
 			return getRowAsVector(rowNum).toArray();
 		}
 
+		//returns a vector consisting of the values in the given column.
 		Vector getColAsVector(int colNum) {
 			if(!isInBounds(0, colNum)) {
 				return Vector();
@@ -1769,10 +1817,12 @@ class Matrix {
 			return result;
 		}
 
+		//returns an array consisting of the values in the given column.
 		double* getColAsArray(int colNum) {
 			return getColAsVector(colNum).toArray();
 		}
 
+		//swap the given rows of the matrix.
 		bool swapRows(int row1, int row2) {
 			if(!isInBounds(row1, 0) || !isInBounds(row2, 0)) {
 				return false;
@@ -1787,6 +1837,7 @@ class Matrix {
 			return true;
 		}
 
+		//swap the given columns of the matrix.
 		bool swapCols(int col1, int col2) {
 			if(!isInBounds(0, col1) || !isInBounds(0, col2)) {
 				return false;
@@ -1816,6 +1867,7 @@ class Matrix {
 			return result;
 		}
 
+		//returns a matrix consisting of all rows between startRow and endRow, inclusive.
 		Matrix getPartialMatrixByRows(int startRow, int endRow) {
 			if(!isInBounds(startRow, 0) || !isInBounds(endRow, 0)) {
 				return Matrix();
@@ -1830,6 +1882,7 @@ class Matrix {
 			return result;
 		}
 
+		//delete all between "startRow" and "endRow", inclusive.
 		bool deleteRows(int startRow, int endRow) {
 			if(!isInBounds(startRow, 0) || !isInBounds(endRow, 0)) {
 				return false;
@@ -1852,6 +1905,7 @@ class Matrix {
 			}
 		}
 
+		//returns true if all entries in the matrix are zero. false otherwise.
 		bool isZeroMatrix() {
 			for(int i = 0; i < rows; i++) {
 				for(int j = 0; j < cols; j++) {
@@ -1874,7 +1928,9 @@ class Matrix {
 
 			return x;
 		}
-
+		
+		//returns the transpose of the matrix that this 
+		//function is called on.
 		Matrix getTranspose() {
 			Matrix result(cols, rows);
 			for(int i = 0; i < rows; i++) {
@@ -1885,11 +1941,13 @@ class Matrix {
 			return result;
 		}
 
+		//tranposes the matrix that this function is called on.
 		Matrix transpose() {
 			*this = getTranspose();
 			return *this;
 		}
 
+		//returns an identity Size x Size identity matrix
 		static Matrix getIdentityMatrix(int size) {
 			Matrix result(size, size);
 			for(int i = 0; i < size; i++) {
@@ -1898,6 +1956,9 @@ class Matrix {
 			return result;
 		}
 
+		//convert a 1xn matrix or a nx1 matrix to a vector
+		//returns an empty vector if the matrix has dimensions
+		//other than 1xn or nx1
 		Vector toVector() {
 			if(rows != 1 || cols != 1) {
 				return Vector();
@@ -1909,6 +1970,7 @@ class Matrix {
 			}
 		}
 
+		//returns true if the matrix is singular. false otherwise. 
 		bool isSingular() {
 			if(determinant() == 0) {
 				return true; 
@@ -1917,6 +1979,8 @@ class Matrix {
 			}
 		}
 
+		//applies a rotation of rads radians to the matrix that this 
+		//function is called on. Only works for 2x2 and 3x3 matrices.
         bool applyRotationInRadians(double rads, string axis) {
             if(rows == 2 && cols == 2) {
                 Matrix rot;
@@ -1945,6 +2009,8 @@ class Matrix {
             return false;
         }
 
+		//applies a rotation of "degrees" degrees to the matrix that this 
+		//function is called on. Only works for 2x2 and 3x3 matrices.
         bool applyRotationInDegrees(double degrees, string axis) {
             double radians = degrees*3.14159/180.0;
             return applyRotationInRadians(radians, axis);
@@ -1979,6 +2045,9 @@ class Matrix {
             return false;
         }
 
+		//changes the size of the matrix to the given values. 
+		//deletes rows or columns if the new size is smaller,
+		//and adds them if it is larger.
         void changeSize(int numRows, int numCols) {
             while(rows > numRows) {
                 deleteRow(rows-1);
@@ -2023,6 +2092,7 @@ class Matrix {
             return rot;
         }
 
+		//returns true if the matrix has no entries, false otherwise.
         bool isEmpty() {
             if(rows == 0 && cols == 0) {
                 return true;
@@ -2030,6 +2100,8 @@ class Matrix {
             return false;
         }
 
+		//returns a matrix with the absolute value of all values 
+		//in the given matrix.
         friend Matrix abs(Matrix m) {
             Matrix result = m;
             for(int i = 0; i < result.rows; i++) {
@@ -2039,6 +2111,34 @@ class Matrix {
             }
             return result;
         }
+		
+	private:
+		int rows, cols;
+		double** mat;
+		
+		//helper function for determinant calculations
+		Matrix createSubMatrix(Matrix mat, int pos) {
+			Matrix temp(mat.colLength()-1, mat.rowLength()-1);
+			bool skipped = false;
+			for(int j = 0; j < mat.rowLength(); j++) {
+				Vector v;
+				if(j != pos) {
+					for(int k = 1; k < mat.colLength(); k++) {
+						v.pushBack(mat[k][j]);
+					}
+				} else {
+					skipped = true;
+				}
+				if(v.getSize() != 0) {
+					if(skipped) {
+						temp.setCol(j-1, v);
+					} else {
+						temp.setCol(j, v);
+					}
+				}
+			}
+			return temp;
+		}
 };
 
 #endif //LINEARALGEBRATOOLKIT_H
